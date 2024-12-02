@@ -1,3 +1,13 @@
+/* DEPRECATED
+ * ____  _____ ____  ____  _____ ____    _  _____ _____ ____
+* |  _ \| ____|  _ \|  _ \| ____/ ___|  / \|_   _| ____|  _ \
+* | | | |  _| | |_) | |_) |  _|| |     / _ \ | | |  _| | | | |
+* | |_| | |___|  __/|  _ <| |__| |___ / ___ \| | | |___| |_| |
+* |____/|_____|_|   |_| \_\_____\____/_/   \_\_| |_____|____/
+* Earlier this file was used to deploy slash commands
+* Now it is being dynamically done in the bot.js file
+* This file has lost the use and purpose it has and will soon be removed */
+
 require("dotenv").config();
 const { REST, Routes } = require("discord.js");
 

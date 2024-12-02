@@ -1,9 +1,23 @@
 require("dotenv").config();
-const { Client, Events, GatewayIntentBits, REST, Routes } = require('discord.js');
+const { Client, Events, GatewayIntentBits, REST, Routes, PermissionsBitField } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const getAiResponse = require("./getAiResponse");
+
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.MessageContent,
+        // GatewayIntentBits.GuildPresences,
+        // GatewayIntentBits.DirectMessages,
+        // GatewayIntentBits.DirectMessageTyping,
+        // GatewayIntentBits.DirectMessageReactions
+    ]
+});
+
 const rest = new REST().setToken(process.env.TOKEN);
 
 const commands = [];
@@ -41,16 +55,41 @@ slashRegister();
 
 client.once(Events.ClientReady, readyClient => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+    const serverCount = client.guilds.cache.size;
+    client.user.setPresence({
+        activities: [{ name: `Roasting in ${serverCount} servers! 🔥`, type: 'PLAYING' }],
+        status: 'online',
+    });
 });
 
 client.on(Events.InteractionCreate, async interaction => {
     if(!interaction.isCommand()) return;
-    console.log(interaction.commandId)
     commands.forEach(command => {
         if(interaction.commandName === command.data.name)
-            command.execute(interaction)
+            command.execute(interaction);
     });
 });
+
+client.on(Events.MessageCreate, async (message) => {
+    const { channel, author, content } = message;
+
+    if (author.bot) return;
+
+    const sessionData = channel.sessionData;
+    if (sessionData && sessionData.type === "vs. AI") {
+        sessionData.messages.push({ role: "user", content });
+
+        try {
+            const aiResponse = await getAiResponse(sessionData.messages);
+            sessionData.messages.push({ role: "assistant", content: aiResponse });
+            await channel.send(`${aiResponse}`);
+        } catch (error) {
+            console.error("Error in AI response:", error);
+            await channel.send("I’m having technical difficulties... Try again later!");
+        }
+    }
+});
+
 
 client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isButton()) return;
@@ -62,13 +101,11 @@ client.on(Events.InteractionCreate, async interaction => {
     const sessionData = channel.sessionData || {};
     const { challenger, opponent } = sessionData;
 
-    console.log(challenger)
-
-    // const isAdmin = member.permissions.has(PermissionFlagsBits.Administrator);
+    const isAdmin = member.permissions.has(PermissionsBitField.All, true);
 
     switch (action) {
         case 'end':
-            if (interaction.user.id !== challenger) {
+            if (interaction.user.id !== challenger && !isAdmin) {
                 await interaction.reply({ content: 'Only the challenger or an admin can end the session!', ephemeral: true });
                 return;
             }
@@ -79,7 +116,6 @@ client.on(Events.InteractionCreate, async interaction => {
 
         case 'pause':
             try {
-                // Disable messaging for challenger and opponent
                 await channel.permissionOverwrites.edit(challenger, { SendMessages: false });
                 await channel.permissionOverwrites.edit(opponent, { SendMessages: false });
 
@@ -109,5 +145,20 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 });
 
+client.on(Events.GuildCreate, guild => {
+    const serverCount = client.guilds.cache.size;
+    client.user.setPresence({
+        activities: [{ name: `Roasting in ${serverCount} servers! 🔥`, type: 'PLAYING' }],
+        status: 'online',
+    });
+});
+
+client.on(Events.GuildDelete, guild => {
+    const serverCount = client.guilds.cache.size;
+    client.user.setPresence({
+        activities: [{ name: `Roasting in ${serverCount} servers! 🔥`, type: 'PLAYING' }],
+        status: 'online',
+    });
+});
 
 client.login(process.env.TOKEN);

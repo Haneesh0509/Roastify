@@ -23,12 +23,11 @@ module.exports = {
         const challengedUser = interaction.options.getUser("user");
         const guild = interaction.guild;
 
-        if (sessionType === "bot" || sessionType === null) {
+        if (sessionType === "bot" || sessionType === null || challengedUser.id === "1310569428198363197") {
             await interaction.reply(`Psst... I was having a nice sleep! HOW DARE YOU INTERRUPT ME!? CHALLENGE ACCEPTED <@${interaction.user.id}>`);
-            const sessionId = Math.floor(1000 + Math.random() * 9000); // Generate a unique session ID
+            const sessionId = Math.floor(1000 + Math.random() * 9000);
 
             try {
-                // Create a private channel for "vs. AI"
                 const channel = await guild.channels.create({
                     name: `ai-roast-session-${sessionId}`,
                     type: 0, // 0 for text channels
@@ -52,7 +51,6 @@ module.exports = {
                     ],
                 });
 
-                // Create an embed for the AI session
                 const embed = new EmbedBuilder()
                     .setTitle(`🤖 Roast Battle: You vs. AI 🤖`)
                     .setDescription(`Session ID: \`${sessionId}\`\nChallenger: <@${interaction.user.id}>\n\nLet the roasting begin! The bot is ready to clap back.`)
@@ -79,6 +77,8 @@ module.exports = {
 
                 channel.sessionData = {
                     challenger: interaction.user.id,
+                    type: "vs. AI",
+                    messages: []
                 };
 
                 // Send the embed with buttons
@@ -92,13 +92,16 @@ module.exports = {
                 return;
             }
 
+            if(challengedUser.bot) {
+                await interaction.reply(`<@${interaction.user.id}>, wanna roast a poor dumb bot? Get some life kid! 💀`);
+                return;
+            }
+
             await interaction.reply(`Oh! So you lowly humans want to fight against each other? Well sure ig.`);
 
-            // Generate a unique numeric ID for the session
             const sessionId = Math.floor(1000 + Math.random() * 9000); // Generates a 4-digit ID
 
             try {
-                // Create a private channel
                 const channel = await guild.channels.create({
                     name: `roast-session-${sessionId}`,
                     type: 0, // 0 for text channels
