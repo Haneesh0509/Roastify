@@ -83,8 +83,10 @@ client.on(Events.MessageCreate, async (message) => {
         try {
             const aiResponse = await getAiResponse(sessionData.messages);
             sessionData.messages.push({ role: "assistant", content: aiResponse });
+            console.log(88);
+            
             if(author.bot)
-                await channel.reply(`${aiResponse}`);
+                await message.reply(`${aiResponse}`);
             else
                 await channel.send(`${aiResponse}`);
         } catch (error) {
