@@ -162,13 +162,6 @@ client.on(Events.GuildDelete, guild => {
     });
 });
 
-client.on(Events.MessageCreate, message => {
-    if(funChannels.has(message.channel.id) && !message.author.bot) {
-    }
-    else if(message.author.bot && message.author.id === "309024868530257920")
-        message.channel.send("this is a fun channel!");
-});
-
 client.login(process.env.TOKEN);
 
 module.exports.funChannels = funChannels;
