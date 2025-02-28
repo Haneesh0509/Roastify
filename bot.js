@@ -3,6 +3,7 @@ const { Client, Events, GatewayIntentBits, REST, Routes, PermissionsBitField } =
 const fs = require('node:fs');
 const path = require('node:path');
 
+const funChannels = new Set();
 const getAiResponse = require("./getAiResponse");
 
 const client = new Client({
@@ -73,10 +74,10 @@ client.on(Events.InteractionCreate, async interaction => {
 client.on(Events.MessageCreate, async (message) => {
     const { channel, author, content } = message;
 
-    if (author.bot) return;
+    if (author.bot && author.id !== "309024868530257920") return;
 
     const sessionData = channel.sessionData;
-    if (sessionData && sessionData.type === "vs. AI") {
+    if ((sessionData && sessionData.type === "vs. AI") || (funChannels.has(channel.id))) {
         sessionData.messages.push({ role: "user", content });
 
         try {
@@ -161,4 +162,13 @@ client.on(Events.GuildDelete, guild => {
     });
 });
 
+client.on(Events.MessageCreate, message => {
+    if(funChannels.has(message.channel.id) && !message.author.bot) {
+    }
+    else if(message.author.bot && message.author.id === "309024868530257920")
+        message.channel.send("this is a fun channel!");
+});
+
 client.login(process.env.TOKEN);
+
+module.exports.funChannels = funChannels;
